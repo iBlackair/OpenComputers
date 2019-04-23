@@ -402,11 +402,7 @@ event.listen("touch", API.checkxy)
 
 while event.pull(0.1, "interrupted") == nil do
   if versionType == "NEW" then
-    --[[if reactor.mbIsConnected() == true and reactor.mbIsAssembled() == true then
-      getInfoFromReactor()
-    end
-  else
-    getInfoFromReactorOLD()]]--
+    getInfoFromReactorOLD()
   end
   --calculateAdjustRodsLevel()
   draw()
