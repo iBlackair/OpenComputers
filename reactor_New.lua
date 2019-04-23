@@ -404,9 +404,9 @@ while event.pull(0.1, "interrupted") == nil do
       getInfoFromReactor()
     end
   else
-    getInfoFromReactorOLD()
+    getInfoFromReactorOLD()]]--
   end
-  calculateAdjustRodsLevel()]]--
+  --calculateAdjustRodsLevel()
   draw()
   local event, address, arg1, arg2, arg3 = event.pull(1)
   if type(address) == "string" and component.isPrimary(address) then
