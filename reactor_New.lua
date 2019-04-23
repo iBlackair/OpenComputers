@@ -149,14 +149,14 @@ function getInfoFromReactor()
   local reactorEnergyStats = reactor.getEnergyStats()
   local reactorFuelStats = reactor.getFuelStats()
  
-  reactor.stats["tick"] = toint(math.floor(reactor.getFissionFuelPower()))
+  reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
   reactor.stats["fuel"] = tostring(reactor.getFissionFuelName())
   currentRf = reactor.stats["stored"]
 end
 
 function getInfoFromReactorOLD()
-  reactor.stats["tick"] = toint(math.floor(reactor.getFissionFuelPower()))
+  reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
   reactor.stats["fuel"] = tostring(reactor.getFissionFuelName())
   currentRf = reactor.stats["stored"]
