@@ -151,6 +151,7 @@ function getInfoFromReactor()
  
   reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
+  reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
   reactor.stats["fuel"] = tostring(reactor.getFissionFuelName())
   currentRf = reactor.stats["stored"]
 end
@@ -158,6 +159,7 @@ end
 function getInfoFromReactorOLD()
   reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
+  reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
   reactor.stats["fuel"] = tostring(reactor.getFissionFuelName())
   currentRf = reactor.stats["stored"]
 end
@@ -290,7 +292,8 @@ function draw()
 
   if currentRF ~= reactor.stats["stored"] then
     currentRF = reactor.stats["stored"]
-    local max = math.ceil(graphs["stored"].width * (currentRF/10000000))
+    MaximumRF = reactor.stats["maxenergy"]	
+    local max = math.ceil(graphs["stored"].width * (currentRF/MaximumRF))
     local currentRFObj = {x = graphs["stored"].x, y = graphs["stored"].y, width = max, height = graphs["stored"].height}
     printInfos("stored")
     printGraphs("stored")
