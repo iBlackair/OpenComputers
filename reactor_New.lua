@@ -52,7 +52,7 @@ function toint(n)
 end
 
 function setSections()
-  sections["graph"] = { x = 5, y = 3, width = 78, height= 33, title = "  INFOS  "}
+  sections["graph"] = { x = 5, y = 3, width = 78, height= 33, title = "  INFO  "}
   sections["controls"] = { x = 88, y = 3, width = 40, height = 20, title = "  CONTROLS  "}
   sections["info"] = { x = 88, y = 26, width = 40, height= 10, title = "  NUMBERS  "}
 end
@@ -60,11 +60,11 @@ end
 function setGraphs()
   graphs["tick"] = { x = 8, y = 6, width = 73, height= 8, title = "ENERGY LAST TICK"}
   graphs["stored"] = { x = 8, y = 16, width = 73, height = 8, title = "ENERGY STORED"}
-  graphs["rods"] = { x = 8, y = 26, width = 73, height= 8, title = "CONTROL RODS LEVEL"}
+  graphs["rods"] = { x = 8, y = 26, width = 73, height= 8, title = "HEAT LEVEL"}
 end
 
 function setInfos()
-  infos["tick"] = { x = 92, y = 28, width = 73, height= 1, title = "BASE RF PER TICK : ", unit = " RF"}
+  infos["tick"] = { x = 92, y = 28, width = 73, height= 1, title = "RF PER TICK : ", unit = " RF"}
   infos["stored"] = { x = 92, y = 30, width = 73, height = 1, title = "ENERGY STORED : ", unit = " RF"}
   infos["efficiency"] = { x = 92, y = 32, width = 73, height = 1, title = "EFFICIENCY : ", unit = " %"}
   infos["fuel"] = { x = 92, y = 34, width = 73, height= 1, title = "FUEL USAGE : ", unit = ""}
