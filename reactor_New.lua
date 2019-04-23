@@ -40,7 +40,6 @@ local maxPowerRod = 100
 
 
 -- functions
-
 function toint(n)
     local s = tostring(n)
     local i, j = s:find('%.')
@@ -68,7 +67,7 @@ function setInfos()
   infos["stored"] = { x = 92, y = 28, width = 73, height = 1, title = "ENERGY STORED : ", unit = " RF"}
   infos["fueltimeused"] = { x = 92, y = 30, width = 73, height = 1, title = "FUEL REMAIN : ", unit = ""}
   infos["fueltimedecay"] = { x = 92, y = 32, width = 73, height = 1, title = "FUEL USED : ", unit = ""}
-  infos["fueltimetotal"] = { x = 92, y = 34, width = 73, height = 1, title = "FUEL TOTAL : ", unit = ""}
+  infos["efficiency"] = { x = 92, y = 34, width = 73, height = 1, title = "FUEL TOTAL : ", unit = ""}
 end
 
 function debugInfos()  
@@ -103,11 +102,9 @@ end
 
 function printGraphs(graphName)
   local g = graphs[graphName]
-
   -- set graph
   gpu.setBackground(colors.lightGrey)
   gpu.fill(g.x, g.y, g.width, g.height, " ")
-
   -- set title
   gpu.setBackground(colors.black)
   gpu.set(g.x, g.y - 1, g.title)
@@ -115,7 +112,6 @@ end
 
 function printActiveGraphs(activeGraph)
   local g = activeGraph
-
   -- set graph
   gpu.setBackground(colors.green)
   gpu.fill(g.x, g.y, g.width, g.height, " ")
@@ -165,7 +161,7 @@ function getInfoFromReactorOLD()
   reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
   reactor.stats["fueltimedecay"] = toint(reactor.getCurrentProcessTime())
   reactor.stats["fueltimeused"] = toint(reactor.getFissionFuelTime())
- -- reactor.stats["fueltimetotal"] = toint(reactor.getReactorProcessTime()) / 20
+  reactor.stats["efficiency"] = toint(reactor.getEfficiency())
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
   reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
   reactor.stats["fuel"] = tostring(reactor.getFissionFuelName())
