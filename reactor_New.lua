@@ -179,11 +179,11 @@ function lowerMaxLimit()
 end
 
 function powerOn()
-  reactor.setActive(true)
+  reactor.activate()
 end
 
 function powerOff()
-  reactor.setActive(false)
+  reactor.deactivate()
 end
 
 function modifyRods(limit, number)
