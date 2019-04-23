@@ -120,7 +120,7 @@ function printActiveGraphs(activeGraph)
   gpu.setBackground(colors.black)
 end
 
---[[function printStaticControlText()
+function printStaticControlText()
   gpu.setForeground(colors.blue)
   gpu.set(97,12, "MIN")
   gpu.setForeground(colors.purple)
@@ -136,7 +136,7 @@ function printControlInfos()
   gpu.setForeground(colors.purple)
   gpu.set(116,13, maxPowerRod .. "% ")
   gpu.setForeground(colors.white)
-end]]--
+end
 
 function printInfos(infoName)
   local maxLength = 15
