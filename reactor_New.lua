@@ -287,7 +287,7 @@ function draw()
 
   if currentRfTick ~= reactor.stats["fuelpower"] then
     currentRfTick = reactor.stats["fuelpower"]
-    local max = math.ceil(graphs["tick"].width * (currentRfTick/maxRF))
+    local max = math.ceil(graphs["tick"].width * (currentRfTick/100))
     local currentRFTickObj = {x = graphs["tick"].x, y = graphs["tick"].y, width = max, height = graphs["tick"].height}
     printInfos("tick")
     printGraphs("tick")
