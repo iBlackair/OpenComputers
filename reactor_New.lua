@@ -401,7 +401,7 @@ API.screen()
 event.listen("touch", API.checkxy)
 
 while event.pull(0.1, "interrupted") == nil do
-  if versionType == "NEW" then
+  if 1 == 1 then
     getInfoFromReactorOLD()
   end
   --calculateAdjustRodsLevel()
