@@ -66,6 +66,7 @@ end
 function setInfos()
   infos["tick"] = { x = 92, y = 28, width = 73, height= 1, title = "BASE RF PER TICK : ", unit = " RF"}
   infos["stored"] = { x = 92, y = 30, width = 73, height = 1, title = "ENERGY STORED : ", unit = " RF"}
+  infos["efficiency"] = { x = 92, y = 32, width = 73, height = 1, title = "EFFICIENCY : ", unit = " %"}
   infos["fuel"] = { x = 92, y = 34, width = 73, height= 1, title = "FUEL USAGE : ", unit = ""}
 end
 
@@ -151,6 +152,7 @@ function getInfoFromReactor()
  
   reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
+  reactor.stats["efficiency"] = toint(reactor.getEfficiency())
   reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
   reactor.stats["fuel"] = tostring(reactor.getFissionFuelName())
   currentRf = reactor.stats["stored"]
@@ -159,6 +161,7 @@ end
 function getInfoFromReactorOLD()
   reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
+  reactor.stats["efficiency"] = toint(reactor.getEfficiency())
   reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
   reactor.stats["fuel"] = tostring(reactor.getFissionFuelName())
   currentRf = reactor.stats["stored"]
