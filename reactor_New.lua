@@ -66,8 +66,9 @@ end
 function setInfos()
   infos["tick"] = { x = 92, y = 28, width = 73, height= 1, title = "RF PER TICK : ", unit = " RF"}
   infos["stored"] = { x = 92, y = 30, width = 73, height = 1, title = "ENERGY STORED : ", unit = " RF"}
-  infos["efficiency"] = { x = 92, y = 32, width = 73, height = 1, title = "EFFICIENCY : ", unit = " %"}
-  infos["fuel"] = { x = 92, y = 34, width = 73, height= 1, title = "FUEL USAGE : ", unit = ""}
+  infos["fuelpower"] = { x = 92, y = 32, width = 73, height = 1, title = "FUEL REMAIN : ", unit = ""}
+  infos["efficiency"] = { x = 92, y = 34, width = 73, height = 1, title = "EFFICIENCY : ", unit = " %"}
+  infos["fuel"] = { x = 92, y = 36, width = 73, height= 1, title = "FUEL USAGE : ", unit = ""}
 end
 
 function debugInfos()  
@@ -151,6 +152,7 @@ function getInfoFromReactor()
   local reactorFuelStats = reactor.getFuelStats()
  
   reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
+  reactor.stats["fuelpower"] = toint(math.floor(reactor.getCurrentProcessTime()))
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
   reactor.stats["efficiency"] = toint(reactor.getEfficiency())
   reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
