@@ -135,8 +135,8 @@ end
 function printInfos(infoName)
   local maxLength = 15
   local i = infos[infoName]
-  local spaces = string.rep(" ", maxLength - string.len(reactor.stats[infoName] .. i.unit))
-  gpu.set(i.x, i.y , i.title .. reactor.stats[infoName] .. i.unit .. spaces)
+  --local spaces = string.rep(" ", maxLength - string.len(reactor.stats[infoName] .. i.unit))
+  gpu.set(i.x, i.y , i.title .. reactor.stats[infoName] .. i.unit .. )
 end
 
 
