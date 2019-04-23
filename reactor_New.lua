@@ -53,8 +53,8 @@ end
 
 function setSections()
   sections["graph"] = { x = 5, y = 3, width = 78, height= 33, title = "  INFO  "}
-  sections["controls"] = { x = 88, y = 3, width = 40, height = 18, title = "  CONTROLS  "}
-  sections["info"] = { x = 88, y = 26, width = 40, height= 12, title = "  NUMBERS  "}
+  sections["controls"] = { x = 88, y = 3, width = 40, height = 20, title = "  CONTROLS  "}
+  sections["info"] = { x = 88, y = 24, width = 40, height= 12, title = "  NUMBERS  "}
 end
 
 function setGraphs()
