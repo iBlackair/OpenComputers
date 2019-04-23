@@ -149,20 +149,17 @@ end
 function getInfoFromReactor()
   local reactorEnergyStats = reactor.getEnergyStats()
   local reactorFuelStats = reactor.getFuelStats()
-  reactorRodsLevel = reactor.getControlRodsLevels()
-
+ 
   reactor.stats["tick"] = toint(math.ceil(reactorEnergyStats["energyProducedLastTick"]))
   reactor.stats["stored"] = toint(reactorEnergyStats["energyStored"])
-  reactor.stats["rods"] = toint(reactorRodsLevel[0])
   reactor.stats["fuel"] = round(reactorFuelStats["fuelConsumedLastTick"], 2)
   currentRf = reactor.stats["stored"]
 end
 
 function getInfoFromReactorOLD()
-  reactor.stats["tick"] = toint(math.ceil(reactor.getEnergyProducedLastTick()))
+  reactor.stats["tick"] = toint(math.floor(reactor.getFissionFuelPower()))
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
-  reactor.stats["rods"] = toint(math.ceil(reactor.getControlRodLevel(0)))
-  reactor.stats["fuel"] = round(reactor.getFuelConsumedLastTick(), 2)
+  reactor.stats["fuel"] = tostring(reactor.getFissionFuelName())
   currentRf = reactor.stats["stored"]
 end
 
@@ -226,7 +223,7 @@ function modifyRods(limit, number)
 end
 
 -- Calculate and adjusts the level of the rods
-function calculateAdjustRodsLevel()
+--[[function calculateAdjustRodsLevel()
 	local rfTotalMax = 10000000
   currentRf = reactor.stats["stored"]
 
@@ -264,7 +261,7 @@ end
 
 function AdjustRodsLevelOLD(rodLevel)
   reactor.setAllControlRodLevels(rodLevel)
-end
+end]]--
 
 function printDebug()  
   local maxLength = 132
@@ -403,13 +400,13 @@ event.listen("touch", API.checkxy)
 
 while event.pull(0.1, "interrupted") == nil do
   if versionType == "NEW" then
-    if reactor.mbIsConnected() == true and reactor.mbIsAssembled() == true then
+    --[[if reactor.mbIsConnected() == true and reactor.mbIsAssembled() == true then
       getInfoFromReactor()
     end
   else
     getInfoFromReactorOLD()
   end
-  calculateAdjustRodsLevel()
+  calculateAdjustRodsLevel()]]--
   draw()
   local event, address, arg1, arg2, arg3 = event.pull(1)
   if type(address) == "string" and component.isPrimary(address) then
