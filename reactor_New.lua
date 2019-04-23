@@ -25,7 +25,7 @@ local graphs = {}
 local infos = {}
 
 
--- defninitions
+-- definitions
 reactor["stats"] = {}
 local running = true
 local maxRF = 0
@@ -159,8 +159,8 @@ end
 
 function getInfoFromReactorOLD()
   reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
-  reactor.stats["fueltimedecay"] = toint(reactor.getCurrentProcessTime())
-  reactor.stats["fueltimeused"] = toint(reactor.getFissionFuelTime())
+  reactor.stats["fueltimedecay"] = toint(math.floor(reactor.getCurrentProcessTime()))
+  reactor.stats["fueltimeused"] = toint(math.floor(reactor.getFissionFuelTime()))
   reactor.stats["efficiency"] = toint(reactor.getEfficiency())
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
   reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
