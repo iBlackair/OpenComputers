@@ -152,7 +152,7 @@ function getInfoFromReactor()
   local reactorFuelStats = reactor.getFuelStats()
  
   reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
-  reactor.stats["fuelpower"] = toint(math.floor(reactor.getReactorProcessTime()()))
+  reactor.stats["fuelpower"] = toint(math.floor(reactor.getReactorProcessTime()))
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
   reactor.stats["efficiency"] = toint(reactor.getEfficiency())
   reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
@@ -162,7 +162,7 @@ end
 
 function getInfoFromReactorOLD()
   reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
-  reactor.stats["fuelpower"] = toint(math.floor(reactor.getReactorProcessTime()()))
+  reactor.stats["fuelpower"] = toint(math.floor(reactor.getReactorProcessTime()))
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
   reactor.stats["efficiency"] = toint(reactor.getEfficiency())
   reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
