@@ -64,9 +64,9 @@ function setGraphs()
 end
 
 function setInfos()
-  infos["tick"] = { x = 92, y = 28, width = 73, height= 1, title = "RF PER TICK : ", unit = " RF"}
+  infos["tick"] = { x = 92, y = 28, width = 73, height= 1, title = "BASE RF PER TICK : ", unit = " RF"}
   infos["stored"] = { x = 92, y = 30, width = 73, height = 1, title = "ENERGY STORED : ", unit = " RF"}
-  infos["fuel"] = { x = 92, y = 34, width = 73, height= 1, title = "FUEL USAGE : ", unit = " Mb/t"}
+  infos["fuel"] = { x = 92, y = 34, width = 73, height= 1, title = "FUEL USAGE : ", unit = ""}
 end
 
 function debugInfos()  
@@ -149,9 +149,9 @@ function getInfoFromReactor()
   local reactorEnergyStats = reactor.getEnergyStats()
   local reactorFuelStats = reactor.getFuelStats()
  
-  reactor.stats["tick"] = toint(math.ceil(reactorEnergyStats["energyProducedLastTick"]))
-  reactor.stats["stored"] = toint(reactorEnergyStats["energyStored"])
-  reactor.stats["fuel"] = round(reactorFuelStats["fuelConsumedLastTick"], 2)
+  reactor.stats["tick"] = toint(math.floor(reactor.getFissionFuelPower()))
+  reactor.stats["stored"] = toint(reactor.getEnergyStored())
+  reactor.stats["fuel"] = tostring(reactor.getFissionFuelName())
   currentRf = reactor.stats["stored"]
 end
 
