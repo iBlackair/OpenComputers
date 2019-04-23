@@ -297,14 +297,14 @@ function draw()
     printActiveGraphs(currentRFObj)
   end
 
-  if currentRodLevel ~= reactor.stats["rods"] then
+  --[[if currentRodLevel ~= reactor.stats["rods"] then
     currentRodLevel = reactor.stats["rods"]
     local max = math.ceil(graphs["rods"].width * (currentRodLevel/100))
     local currentRodObj = {x = graphs["rods"].x, y = graphs["rods"].y, width = max, height = graphs["rods"].height}
     printInfos("rods")
     printGraphs("rods")
     printActiveGraphs(currentRodObj)
-  end
+  end]]--
 
   if currenFuel ~= reactor.stats["fuel"] then
     currenFuel = reactor.stats["fuel"]
