@@ -163,7 +163,8 @@ end
 
 function getInfoFromReactorOLD()
   reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
-  reactor.stats["fuelpower"] = toint(reactor.getReactorProcessTime())
+  reactor.stats["fueltimedecay"] = toint(reactor.getReactorProcessTime())
+  reactor.stats["fueltimeused"] = toint(reactor.getCurrentProcessTime())
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
   reactor.stats["efficiency"] = toint(reactor.getEfficiency())
   reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
