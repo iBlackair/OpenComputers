@@ -160,6 +160,7 @@ end
 
 function getInfoFromReactorOLD()
   reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
+  reactor.stats["fuelpower"] = toint(math.floor(reactor.getCurrentProcessTime()))
   reactor.stats["stored"] = toint(reactor.getEnergyStored())
   reactor.stats["efficiency"] = toint(reactor.getEfficiency())
   reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
@@ -284,8 +285,8 @@ function draw()
     maxRF = reactor.stats["tick"]
   end
 
-  if currentRfTick ~= reactor.stats["tick"] then
-    currentRfTick = reactor.stats["tick"]
+  if currentRfTick ~= reactor.stats["fuelpower"] then
+    currentRfTick = reactor.stats["fuelpower"]
     local max = math.ceil(graphs["tick"].width * (currentRfTick/maxRF))
     local currentRFTickObj = {x = graphs["tick"].x, y = graphs["tick"].y, width = max, height = graphs["tick"].height}
     printInfos("tick")
