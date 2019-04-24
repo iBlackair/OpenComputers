@@ -1,6 +1,7 @@
 API = require("buttonAPI")
 local component = require("component")
 local event = require("event")
+local gpu = component.gpu
 local graph = require("bobs_graph")
 
 if not component.isAvailable("nc_fission_reactor") then
@@ -13,9 +14,7 @@ local mr, mh
 
 
 local colors = { blue = 0x4286F4, purple = 0xB673d6, red = 0xC14141, green = 0xDA841,
-  black = 0x000000, white = 0xFFFFFF, grey = 0x47494C, lightGrey = 0xBBBBBB}
-  
-local gpu = component.gpu
+  black = 0x000000, white = 0xFFFFFF, grey = 0x47494C, lightGrey = 0xBBBBBB}  
 gpu.setResolution(132,38)
 
 local heat,workV,autoV = false,true,false
@@ -172,7 +171,7 @@ end
 
 function buttonsDraw()
  buttons[1] = graph.TB(autoButton,7,12,12,3,"Auto",0xbb1111,0xffffff)
- buttons[2] = API.setTable("Acitvate", poweron, 22, 12, 12, 3,"Activate", {on = colors.green, off = colors.green})
+API.setTable("Acitvate", poweron, 22, 12, 12, 3,"Activate", {on = colors.green, off = colors.green})
  --buttons[2] = graph.TB(activate,22,12,12,3,"Activate",0xbb1111,0xffffff)
  buttons[3] = graph.TB(updateAll,22,16,12,3,"Update",0xbb1111,0xffffff)
  buttons[4] = graph.TB((function() workV = false end),7,16,12,3,"Exit",0x999999,0xeeeeee)
@@ -217,3 +216,9 @@ gpu.setBackground(0)
 gpu.setForeground(0xffffff)
 os.execute("clear")
 print("Exiting")
+
+
+
+
+
+
