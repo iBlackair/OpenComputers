@@ -69,13 +69,14 @@ end
 
 function setInfos()
    infos["tick"] = { x = 90, y = 27, width = 73, height= 1, title = "RF PER TICK : ", unit = " RF"}
+   infos["heatlevel"] = { x = 90, y = 34, width = 73, height = 1, title = "HEAT: ", unit = " HU/t"}
    infos["stored"] = { x = 90, y = 28, width = 73, height = 1, title = "ENERGY STORED : ", unit = " RF"}
    infos["efficiency"] = { x = 90, y = 29, width = 73, height = 1, title = "EFFICIENCY : ", unit = "%"}
    infos["fuelname"] = { x = 90, y = 30, width = 73, height = 1, title = "FUEL NAME: ", unit = " "}
    infos["fueldecaytime"] = { x = 90, y = 31, width = 73, height = 1, title = "FUEL USED: ", unit = " "}
    infos["fueltotaltime"] = { x = 90, y = 32, width = 73, height = 1, title = "FUEL TOTAL: ", unit = " "}
    infos["heat"] = { x = 90, y = 33, width = 73, height = 1, title = "HEAT: ", unit = " HU/t"}
-   infos["heatlevel"] = { x = 90, y = 34, width = 73, height = 1, title = "HEAT: ", unit = " HU/t"}
+   
 end
 
 function debugInfos()  
