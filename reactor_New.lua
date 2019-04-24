@@ -74,6 +74,8 @@ function setInfos()
    infos["fuelname"] = { x = 90, y = 30, width = 73, height = 1, title = "FUEL NAME: ", unit = " "}
    infos["fueldecaytime"] = { x = 90, y = 31, width = 73, height = 1, title = "FUEL USED: ", unit = " "}
    infos["fueltotaltime"] = { x = 90, y = 32, width = 73, height = 1, title = "FUEL TOTAL: ", unit = " "}
+   infos["heat"] = { x = 90, y = 33, width = 73, height = 1, title = "HEAT: ", unit = " HU/t"}
+   infos["heatlevel"] = { x = 90, y = 34, width = 73, height = 1, title = "HEAT: ", unit = " HU/t"}
 end
 
 function debugInfos()  
@@ -170,6 +172,11 @@ function getInfoFromReactorOLD()
      --Energy Information
      reactor.stats["stored"] = toint(reactor.getEnergyStored())
      reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
+	 
+	 --Heat Information
+	 reactor.stats["heat"] = toint(reactor.getProcessHeat())
+	 reactor.stats["heatlevel"] = toint(reactor.getHeatLevel())
+	 
 
   CurrentFuelTime = reactor.stats["fueldecaytime"]
   TotalFuelTime = reactor.stats["fueltotaltime"]
@@ -312,14 +319,12 @@ function draw()
 end
 
 
-
-
-
 function startup()
   getInfoFromFile()
    if 1 == 1 then
     getInfoFromReactorOLD()
    end
+  reactor.forceUpdate()
   setSections()
   setGraphs()
   setInfos()
