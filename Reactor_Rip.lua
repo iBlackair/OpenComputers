@@ -101,7 +101,7 @@ function autoButton()
   autoV = false
   os.sleep(0.2)
  else
-  r.deactivate()
+  reactor.deactivate()
   autoV = true
   os.sleep(0.2)
  end
@@ -224,7 +224,7 @@ end
 end]]--
 
 function powerOff()
-  reactor.deactivate()
+  reactor.activate()
 end
 
 function modifyRods(limit, number)
