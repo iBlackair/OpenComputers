@@ -108,7 +108,7 @@ function autoButton()
 end
 
 while workV do
- 
+ setInfos(name)
 end
 
 function printBorders(sectionName)
