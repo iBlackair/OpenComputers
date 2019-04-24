@@ -25,7 +25,8 @@ local graphs = {}
 local infos = {}
 
 
--- definitions
+-- defninitions
+
 reactor["stats"] = {}
 local running = true
 local maxRF = 0
@@ -34,12 +35,16 @@ local currentRodLevel = 0
 local currentRf = 0
 local currentRfTick = 0
 local currenFuel = 0
+local CurrentFuelTime = 0
+local TotalFuelTime = 0
+local MaximumStorage = 0
 
 local minPowerRod = 0
 local maxPowerRod = 100
 
 
 -- functions
+
 function toint(n)
     local s = tostring(n)
     local i, j = s:find('%.')
@@ -57,17 +62,18 @@ function setSections()
 end
 
 function setGraphs()
-  graphs["tick"] = { x = 8, y = 6, width = 73, height= 8, title = "ENERGY LAST TICK"}
+  graphs["tick"] = { x = 8, y = 6, width = 73, height= 8, title = "FUEL USAGE"}
   graphs["stored"] = { x = 8, y = 16, width = 73, height = 8, title = "ENERGY STORED"}
   graphs["rods"] = { x = 8, y = 26, width = 73, height= 8, title = "HEAT LEVEL"}
 end
 
 function setInfos()
-  infos["tick"] = { x = 92, y = 26, width = 73, height= 1, title = "RF PER TICK : ", unit = " RF"}
-  infos["stored"] = { x = 92, y = 28, width = 73, height = 1, title = "ENERGY STORED : ", unit = " RF"}
-  infos["fueltimeused"] = { x = 92, y = 30, width = 73, height = 1, title = "FUEL REMAIN : ", unit = ""}
-  infos["fueltimedecay"] = { x = 92, y = 32, width = 73, height = 1, title = "FUEL USED : ", unit = ""}
-  infos["efficiency"] = { x = 92, y = 34, width = 73, height = 1, title = "FUEL TOTAL : ", unit = ""}
+   infos["tick"] = { x = 90, y = 27, width = 73, height= 1, title = "RF PER TICK : ", unit = " RF"}
+   infos["stored"] = { x = 90, y = 28, width = 73, height = 1, title = "ENERGY STORED : ", unit = " RF"}
+   infos["efficiency"] = { x = 90, y = 29, width = 73, height = 1, title = "EFFICIENCY : ", unit = "%"}
+   infos["fuelname"] = { x = 90, y = 30, width = 73, height = 1, title = "FUEL NAME: ", unit = " "}
+   infos["fueldecaytime"] = { x = 90, y = 31, width = 73, height = 1, title = "FUEL USED: ", unit = " "}
+   infos["fueltotaltime"] = { x = 90, y = 32, width = 73, height = 1, title = "FUEL TOTAL: ", unit = " "}
 end
 
 function debugInfos()  
@@ -102,9 +108,11 @@ end
 
 function printGraphs(graphName)
   local g = graphs[graphName]
+
   -- set graph
   gpu.setBackground(colors.lightGrey)
   gpu.fill(g.x, g.y, g.width, g.height, " ")
+
   -- set title
   gpu.setBackground(colors.black)
   gpu.set(g.x, g.y - 1, g.title)
@@ -112,6 +120,7 @@ end
 
 function printActiveGraphs(activeGraph)
   local g = activeGraph
+
   -- set graph
   gpu.setBackground(colors.green)
   gpu.fill(g.x, g.y, g.width, g.height, " ")
@@ -145,27 +154,28 @@ end
 
 function getInfoFromReactor()
   local reactorEnergyStats = reactor.getEnergyStats()
-  local reactorFuelStats = reactor.getFuelStats()
- 
-  reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
-  reactor.stats["fueltimedecay"] = toint(reactor.getReactorProcessTime()) / 20
-  reactor.stats["fueltimeused"] = toint(reactor.getCurrentProcessTime())
-  reactor.stats["stored"] = toint(reactor.getEnergyStored())
-  reactor.stats["efficiency"] = toint(reactor.getEfficiency())
-  reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
-  reactor.stats["fuel"] = tostring(reactor.getFissionFuelName())
   currentRf = reactor.stats["stored"]
 end
 
 function getInfoFromReactorOLD()
-  reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
-  reactor.stats["fueltimedecay"] = toint(math.floor(reactor.getCurrentProcessTime()))
-  reactor.stats["fueltimeused"] = toint(math.floor(reactor.getFissionFuelTime()))
-  reactor.stats["efficiency"] = toint(reactor.getEfficiency())
-  reactor.stats["stored"] = toint(reactor.getEnergyStored())
-  reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
-  reactor.stats["fuel"] = tostring(reactor.getFissionFuelName())
+     reactor.stats["tick"] = toint(math.floor(reactor.getReactorProcessPower()))
+
+     --Fuel Information
+     reactor.stats["fuelname"] = tostring(reactor.getFissionFuelName())
+     reactor.stats["efficiency"] = toint(reactor.getEfficiency())
+     reactor.stats["fueldecaytime"] = toint(reactor.getCurrentProcessTime())
+     reactor.stats["fueltimeused"] = toint(reactor.getReactorProcessTime())
+     reactor.stats["fueltotaltime"] = toint(reactor.getFissionFuelTime())
+ 
+     --Energy Information
+     reactor.stats["stored"] = toint(reactor.getEnergyStored())
+     reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
+
+  CurrentFuelTime = reactor.stats["fueldecaytime"]
+  TotalFuelTime = reactor.stats["fueltotaltime"]
+
   currentRf = reactor.stats["stored"]
+  MaximumStorage = reactor.stats["maxenergy"]
 end
 
 function augmentMinLimit()
@@ -281,13 +291,10 @@ function printDebug()
 end
 
 function draw()
-  if maxRF < reactor.stats["tick"] then
-    maxRF = reactor.stats["tick"]
-  end
 
- if currentRfTick ~= reactor.stats["tick"] then
-    currentRfTick = reactor.stats["tick"]
-    local max = math.ceil(graphs["tick"].width * (currentRfTick/maxRF))
+  if CurrentFuelTime ~= reactor.stats["fueltimeused"] then
+    currentRfTick = reactor.stats["fueltimeused"]
+    local max = math.ceil(graphs["tick"].width * (currentRfTick/TotalFuelTime))
     local currentRFTickObj = {x = graphs["tick"].x, y = graphs["tick"].y, width = max, height = graphs["tick"].height}
     printInfos("tick")
     printGraphs("tick")
@@ -295,41 +302,24 @@ function draw()
   end
 
   if currentRF ~= reactor.stats["stored"] then
-    currentRF = reactor.stats["stored"]
-    MaximumRF = reactor.stats["maxenergy"]	
-    local max = math.ceil(graphs["stored"].width * (currentRF/MaximumRF))
+    currentRF = reactor.stats["stored"] - 1
+    local max = math.ceil(graphs["stored"].width * (currentRF/MaximumStorage))
     local currentRFObj = {x = graphs["stored"].x, y = graphs["stored"].y, width = max, height = graphs["stored"].height}
     printInfos("stored")
     printGraphs("stored")
     printActiveGraphs(currentRFObj)
   end
-
-  --[[if currentRodLevel ~= reactor.stats["rods"] then
-    currentRodLevel = reactor.stats["rods"]
-    local max = math.ceil(graphs["rods"].width * (currentRodLevel/100))
-    local currentRodObj = {x = graphs["rods"].x, y = graphs["rods"].y, width = max, height = graphs["rods"].height}
-    printInfos("rods")
-    printGraphs("rods")
-    printActiveGraphs(currentRodObj)
-  end]]--
-
-  if currenFuel ~= reactor.stats["fuel"] then
-    currenFuel = reactor.stats["fuel"]
-    printInfos("fuel")
-  end
-  printControlInfos()
-  if DEBUG == true then
-    printDebug()
-  end
 end
+
+
+
+
 
 function startup()
   getInfoFromFile()
-  if versionType == "NEW" then
-    getInfoFromReactor()
-  else
+   if 1 == 1 then
     getInfoFromReactorOLD()
-  end
+   end
   setSections()
   setGraphs()
   setInfos()
@@ -405,10 +395,9 @@ API.screen()
 event.listen("touch", API.checkxy)
 
 while event.pull(0.1, "interrupted") == nil do
-  if 1 == 1 then
+   if 1 == 1 then
     getInfoFromReactorOLD()
-  end
-  --calculateAdjustRodsLevel()
+   end
   draw()
   local event, address, arg1, arg2, arg3 = event.pull(1)
   if type(address) == "string" and component.isPrimary(address) then
