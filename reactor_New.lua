@@ -175,7 +175,7 @@ function getInfoFromReactorOLD()
      reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
 	 
 	 --Heat Information
-	 reactor.stats["heat"] = toint(reactor.getProcessHeat())
+	 reactor.stats["heat"] = toint(reactor.getReactorProcessHeat())
 	 reactor.stats["heatlevel"] = toint(reactor.getHeatLevel())
 	 
 
