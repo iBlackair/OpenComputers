@@ -281,20 +281,6 @@ function calculateHeatPower()
 	if PowerCalc >= 80 and PowerCooling == false then
 		PowerCooling = true
 	end
-
-	if currentRf <= minPower then
-		currentRf = minPower
-	end
-
-	currentRf = toint(currentRf - (rfTotalMax/100) * minPowerRod)
-	local rfInBetween = (rfTotalMax/100) * differenceMinMax
-  local rodLevel = toint(math.ceil((currentRf/rfInBetween)*100))
-  
-  if versionType == "NEW" then
-    AdjustRodsLevel(rodLevel)
-  else
-    AdjustRodsLevelOLD(rodLevel)
-  end
 end
 
 while PowerCooling do
@@ -304,18 +290,6 @@ while PowerCooling do
 	elseif PowerCalc <= 30 then
 		PowerCooling = false
 	end	
-end
-
-function AdjustRodsLevel(rodLevel)
-  for key,value in pairs(reactorRodsLevel) do 
-    --reactorRodsLevel[key] = rodLevel
-    reactor.setControlRodLevel(key, rodLevel)
-  end
-  --reactor.setControlRodsLevels(reactorRodsLevel)
-end
-
-function AdjustRodsLevelOLD(rodLevel)
-  reactor.setAllControlRodLevels(rodLevel)
 end
 
 function printDebug()  
