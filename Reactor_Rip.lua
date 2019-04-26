@@ -12,12 +12,12 @@ local DEBUG = false
 local debugList = {}
 local debugVars = {}
 
-local autoV = false
-
 
 local colors = { blue = 0x4286F4, purple = 0xB673d6, red = 0xC14141, green = 0xDA841,
-  black = 0x000000, white = 0xFFFFFF, grey = 0x47494C, lightGrey = 0xBBBBBB}
+  black = 0x000000, white = 0xFFFFFF, grey = 0x47494C, lightGrey = 0xBBBBBB, darkblue = 0x1029CA, mudyellow =0xEBDE3A, orange = 0xEE9815,
+      darkred= 0xFF0000 }
 -- set size of the screen for lvl 3
+
 gpu.setResolution(132,38)
 gpu.setBackground(colors.black)
 gpu.fill(1, 1, 132, 38, " ")
@@ -26,8 +26,7 @@ local sections = {}
 local graphs = {}
 local infos = {}
 
-
--- defninitions
+-- definitions
 
 reactor["stats"] = {}
 local running = true
@@ -40,9 +39,15 @@ local currenFuel = 0
 local CurrentFuelTime = 0
 local TotalFuelTime = 0
 local MaximumStorage = 0
+local fore = darkblue
+local PowerCooling = false
+local HeatCooling = false
 
 local minPowerRod = 0
 local maxPowerRod = 100
+
+local currentHeat =0
+local MaxHeat = 0
 
 
 -- functions
@@ -58,27 +63,30 @@ function toint(n)
 end
 
 function setSections()
-  sections["graph"] = { x = 5, y = 3, width = 78, height= 33, title = "  INFO  "}
-  sections["controls"] = { x = 88, y = 3, width = 40, height = 20, title = "  CONTROLS  "}
-  sections["info"] = { x = 88, y = 25, width = 40, height= 11, title = "  NUMBERS  "}
+  sections["graph"] = { x = 5, y = 3, width = 39, height= 33, title = "  INFO  "}
+  sections["controls"] = { x = 47, y = 3, width = 40, height = 20, title = "  CONTROLS  "}
+  sections["info"] = { x = 47, y = 25, width = 40, height= 11 , title = "  STATS  "}
 end
 
 function setGraphs()
-  graphs["tick"] = { x = 8, y = 6, width = 73, height= 8, title = "FUEL USAGE"}
-  graphs["stored"] = { x = 8, y = 16, width = 73, height = 8, title = "ENERGY STORED"}
-  graphs["rods"] = { x = 8, y = 26, width = 73, height= 8, title = "HEAT LEVEL"}
+  graphs["tick"] = { x = 8, y = 5, width = 10, height= 28, title = "FUEL"}
+  graphs["stored"] = { x = 20, y = 5, width = 10, height = 28, title = "ENERGY"}
+  graphs["heat"] = { x = 32, y = 5, width = 10, height= 28, title = "HEAT"}
 end
 
 function setInfos()
-   infos["tick"] = { x = 90, y = 27, width = 73, height= 1, title = "RF PER TICK : ", unit = " RF"}
-   infos["heatlevel"] = { x = 90, y = 34, width = 73, height = 1, title = "HEAT: ", unit = " HU/t"}
-   infos["stored"] = { x = 90, y = 28, width = 73, height = 1, title = "ENERGY STORED : ", unit = " RF"}
-   infos["efficiency"] = { x = 90, y = 29, width = 73, height = 1, title = "EFFICIENCY : ", unit = "%"}
-   infos["fuelname"] = { x = 90, y = 30, width = 73, height = 1, title = "FUEL NAME: ", unit = " "}
-   infos["fueldecaytime"] = { x = 90, y = 31, width = 73, height = 1, title = "FUEL USED: ", unit = " "}
-   infos["fueltotaltime"] = { x = 90, y = 32, width = 73, height = 1, title = "FUEL TOTAL: ", unit = " "}
-   infos["heat"] = { x = 90, y = 33, width = 73, height = 1, title = "HEAT: ", unit = " HU/t"}
-   
+   infos["tick"] = { x = 49, y = 27, width = 73, height= 1, title = "RF PER TICK: ", unit = " RF"}
+   infos["stored"] = { x = 49, y = 28, width = 73, height = 1, title = "ENERGY STORED: ", unit = " RF"}
+   infos["efficiency"] = { x = 49, y = 29, width = 73, height = 1, title = "EFFICIENCY: ", unit = "%"}
+   infos["fuelname"] = { x = 49, y = 30, width = 73, height = 1, title = "FUEL:", unit = " "}
+   infos["fueldecaytime"] = { x = 62, y = 30, width = 73, height = 1, title = " (", unit = " "}
+   infos["fueltotaltime"] = { x = 62, y = 30, width = 73, height = 1, title = "/", unit = ")"}
+   infos["heat"] = { x = 49, y = 31, width = 73, height = 1, title = "COOLING: ", unit = " HU/t"}
+   infos["heatlevel"] = { x = 49, y = 32, width = 73, height = 1, title = "HEAT:", unit = ""}
+ end
+
+function setFuelPosition()
+  infos["fueltotaltime"] = { x = 62 + string.len(reactor.getCurrentProcessTime()), y = 30, width =73, hight = 1, title ="/", unit=")"}
 end
 
 function debugInfos()  
@@ -86,36 +94,21 @@ function debugInfos()
 end
 
 function setButtons()
-  API.setTable("ON", autoButton, 91, 5, 106, 7,"ON", {on = colors.green, off = colors.green})
-  API.setTable("OFF", powerOff, 109, 5, 125, 7,"OFF", {on = colors.red, off = colors.red})
+  API.setTable("ON", powerOn, 50, 5, 65, 7,"ON", {on = colors.green, off = colors.green})
+  API.setTable("OFF", powerOff, 68, 5, 84, 7,"OFF", {on = colors.red, off = colors.red})
 
-  API.setTable("lowerMinLimit", lowerMinLimit, 91, 15, 106, 17,"-10", {on = colors.blue, off = colors.blue})
-  API.setTable("lowerMaxLimit", lowerMaxLimit, 109, 15, 125, 17,"-10", {on = colors.purple, off = colors.purple})
+  API.setTable("lowerMinLimit", lowerMinLimit, 50, 15, 65, 17,"-10", {on = colors.blue, off = colors.blue})
+  API.setTable("lowerMaxLimit", lowerMaxLimit, 68, 15, 84, 17,"-10", {on = colors.purple, off = colors.purple})
 
-  API.setTable("augmentMinLimit", augmentMinLimit, 91, 19, 106, 21,"+10", {on = colors.blue, off = colors.blue})
-  API.setTable("augmentMaxLimit", augmentMaxLimit, 109, 19, 125, 21,"+10", {on = colors.purple, off = colors.purple})
-end
-
-function autoButton()
- if autoV then
-  autoV = false
-  os.sleep(0.2)
- else
-  reactor.deactivate()
-  autoV = true
-  os.sleep(0.2)
- end
-end
-
-while workV do
- setInfos(name)
+  API.setTable("augmentMinLimit", augmentMinLimit, 50, 19, 65, 21,"+10", {on = colors.blue, off = colors.blue})
+  API.setTable("augmentMaxLimit", augmentMaxLimit, 68, 19, 84, 21,"+10", {on = colors.purple, off = colors.purple})
 end
 
 function printBorders(sectionName)
   local s = sections[sectionName]
 
   -- set border
-  gpu.setBackground(colors.grey)
+  gpu.setBackground(colors.blue)
   gpu.fill(s.x, s.y, s.width, 1, " ")
   gpu.fill(s.x, s.y, 1, s.height, " ")
   gpu.fill(s.x, s.y + s.height, s.width, 1, " ")
@@ -128,40 +121,49 @@ end
 
 function printGraphs(graphName)
   local g = graphs[graphName]
+  local heatcalc = currentHeat/MaxHeat * 100
 
   -- set graph
-  gpu.setBackground(colors.lightGrey)
-  gpu.fill(g.x, g.y, g.width, g.height, " ")
+  if g == graphs["heat"] and heatcalc > 15 and heatcalc <30  then
+      gpu.setBackground(colors.mudyellow)
+  elseif g == graphs["heat"] and heatcalc > 30 and heatcalc < 50 then
+      gpu.setBackground(colors.orange)
+  elseif g == graphs["heat"] and heatcalc > 50 then
+      gpu.setBakcground(colors.darkred)
+  else 
+    gpu.setBackground(colors.green)
+  end
+  gpu.fill(g.x, g.y, g.width, g.height, "_")
 
   -- set title
   gpu.setBackground(colors.black)
-  gpu.set(g.x, g.y - 1, g.title)
+  gpu.set(g.x, g.y +g.height, g.title)
 end
 
 function printActiveGraphs(activeGraph)
   local g = activeGraph
 
   -- set graph
-  gpu.setBackground(colors.green)
+  gpu.setBackground(colors.white)
   gpu.fill(g.x, g.y, g.width, g.height, " ")
   gpu.setBackground(colors.black)
 end
 
 function printStaticControlText()
   gpu.setForeground(colors.blue)
-  gpu.set(97,12, "MIN")
+  gpu.set(56,12, "MIN")
   gpu.setForeground(colors.purple)
-  gpu.set(116,12, "MAX")
+  gpu.set(74,12, "MAX")
   gpu.setForeground(colors.white)
-  gpu.set(102,10, "AUTO-CONTROL")
-  gpu.set(107,13, "--")
+  gpu.set(61,10, "AUTO-CONTROL")
+  gpu.set(66,13, "--")
 end
 
 function printControlInfos()
   gpu.setForeground(colors.blue)
-  gpu.set(97,13, minPowerRod .. "% ")
+  gpu.set(56,13, minPowerRod .. "% ")
   gpu.setForeground(colors.purple)
-  gpu.set(116,13, maxPowerRod .. "% ")
+  gpu.set(74,13, maxPowerRod .. "% ")
   gpu.setForeground(colors.white)
 end
 
@@ -184,23 +186,30 @@ function getInfoFromReactorOLD()
      reactor.stats["fuelname"] = tostring(reactor.getFissionFuelName())
      reactor.stats["efficiency"] = toint(reactor.getEfficiency())
      reactor.stats["fueldecaytime"] = toint(reactor.getCurrentProcessTime())
-     reactor.stats["fueltimeused"] = toint(reactor.getReactorProcessTime())
-     reactor.stats["fueltotaltime"] = toint(reactor.getFissionFuelTime())
+     reactor.stats["fueltimeused"] = math.floor(reactor.getReactorProcessTime())
+     reactor.stats["fueltotaltime"] =toint(reactor.getFissionFuelTime())
  
      --Energy Information
      reactor.stats["stored"] = toint(reactor.getEnergyStored())
      reactor.stats["maxenergy"] = toint(reactor.getMaxEnergyStored())
-	 
-	 --Heat Information
-	 reactor.stats["heat"] = toint(reactor.getReactorProcessHeat())
-	 reactor.stats["heatlevel"] = toint(reactor.getHeatLevel())
-	 
+ 
+     --Heat Information
+     reactor.stats["heat"] = toint(reactor.getReactorProcessHeat())
+     reactor.stats["heatlevel"] = toint(reactor.getHeatLevel())
+     reactor.stats["maxheat"] = math.floor(reactor.getMaxHeatLevel())
+ 
+     --Graph Information
+     FuelName = tostring(reactor.stats["fuelname"])
+     CurrentFuelTime = math.floor(reactor.stats["fueldecaytime"])
+     TotalFuelTime   = math.floor(reactor.stats["fueltotaltime"])
+    
+     currentRf = reactor.stats["stored"]
+     MaximumStorage = reactor.stats["maxenergy"]
 
-  CurrentFuelTime = reactor.stats["fueldecaytime"]
-  TotalFuelTime = reactor.stats["fueltotaltime"]
+     currentHeat = math.floor(reactor.stats["heatlevel"])
+     MaxHeat = math.floor(reactor.stats["maxheat"])
 
-  currentRf = reactor.stats["stored"]
-  MaximumStorage = reactor.stats["maxenergy"]
+      
 end
 
 function augmentMinLimit()
@@ -218,13 +227,13 @@ end
 function lowerMaxLimit()
   modifyRods("max", -10)
 end
-	
---[[function powerOn()
+
+function powerOn()
   reactor.activate()
-end]]--
+end
 
 function powerOff()
-  reactor.activate()
+  reactor.deactivate()
 end
 
 function modifyRods(limit, number)
@@ -259,21 +268,18 @@ function modifyRods(limit, number)
 	end
 
   setInfoToFile()
-  calculateAdjustRodsLevel()
+  calculateHeatPower()
 end
 
 -- Calculate and adjusts the level of the rods
---[[function calculateAdjustRodsLevel()
-	local rfTotalMax = 10000000
-  currentRf = reactor.stats["stored"]
+function calculateHeatPower()
+	local rfTotalMax = MaximumStorage
+	local PowerCalc  = currentRF/MaximumStorage * 100
+	local CalcHeat   = currentHeat/MaxHeat * 100
+	currentRf = reactor.stats["stored"]
 
-	differenceMinMax = maxPowerRod - minPowerRod
-
-	local maxPower = (rfTotalMax/100) * maxPowerRod
-	local minPower = (rfTotalMax/100) * minPowerRod
-
-	if currentRf >= maxPower then
-		currentRf = maxPower
+	if PowerCalc >= 80 and PowerCooling == false then
+		PowerCooling = true
 	end
 
 	if currentRf <= minPower then
@@ -291,6 +297,15 @@ end
   end
 end
 
+while PowerCooling do
+	local PowerCalc  = currentRF/MaximumStorage * 100
+	if PowerCalc ~= <= 30 then
+		os.sleep(500)
+	elseif PowerCalc <= 30 then
+		PowerCooling = false
+	end	
+end
+
 function AdjustRodsLevel(rodLevel)
   for key,value in pairs(reactorRodsLevel) do 
     --reactorRodsLevel[key] = rodLevel
@@ -301,7 +316,7 @@ end
 
 function AdjustRodsLevelOLD(rodLevel)
   reactor.setAllControlRodLevels(rodLevel)
-end]]--
+end
 
 function printDebug()  
   local maxLength = 132
@@ -315,25 +330,55 @@ function printDebug()
   gpu.set(i.x, i.y , i.title .. debugInformations .. spaces)
 end
 
-function draw()
+function updateall()
+   printInfos("tick")
+   printInfos("heatlevel")
+   printInfos("stored")
+   printInfos("efficiency")
+   printInfos("fuelname")
+   printInfos("fueldecaytime")
+   printInfos("fueltotaltime") 
+   printInfos("heat")
+   setFuelPosition()
+end
 
-  if CurrentFuelTime ~= reactor.stats["fueltimeused"] then
-    currentRfTick = reactor.stats["fueltimeused"]
-    local max = math.ceil(graphs["tick"].width * (currentRfTick/TotalFuelTime))
-    local currentRFTickObj = {x = graphs["tick"].x, y = graphs["tick"].y, width = max, height = graphs["tick"].height}
-    printInfos("tick")
+function draw()
+  
+  if FuelName == "No Fuel" then
+    local currentRFTickObj = {x = graphs["tick"].x, y = graphs["tick"].y, width = graphs["tick"].width, height = graphs["tick"].height }
+    printActiveGraphs(currentRFTickObj)
+  end  
+
+  if CurrentFuelTime ~= reactor.stats["TotalFuelTime"] and FuelName ~= "No Fuel" then
+    currentRfTick = reactor.stats["fueldecaytime"]-1
+    local max = graphs["tick"].height - graphs["tick"].height * (currentRfTick/TotalFuelTime)
+    local currentRFTickObj = {x = graphs["tick"].x, y = graphs["tick"].y, width = graphs["tick"].width, height = max -1 }
+    updateall()
     printGraphs("tick")
     printActiveGraphs(currentRFTickObj)
   end
 
   if currentRF ~= reactor.stats["stored"] then
     currentRF = reactor.stats["stored"] - 1
-    local max = math.ceil(graphs["stored"].width * (currentRF/MaximumStorage))
-    local currentRFObj = {x = graphs["stored"].x, y = graphs["stored"].y, width = max, height = graphs["stored"].height}
-    printInfos("stored")
-    printGraphs("stored")
+    local max = math.floor(graphs["stored"].height - math.floor(graphs["stored"].height * (currentRF/MaximumStorage)))
+    local currentRFObj = {x = graphs["stored"].x, y = graphs["stored"].y , width = graphs["stored"].width, height = max-1}
+    updateall()
+    printGraphs("stored",darkblue)
     printActiveGraphs(currentRFObj)
   end
+
+  if currentHeat ~= reactor.stats["MaxHeat"] then
+    currentHeat = reactor.stats["heatlevel"] - 1
+    local max = math.floor(graphs["heat"].height - math.floor(graphs["heat"].height * (currentHeat/MaxHeat)))
+    local currentHeatObj = {x = graphs["heat"].x, y = graphs["heat"].y , width = graphs["heat"].width, height = max-1}
+    updateall()
+    printGraphs("heat")
+    printActiveGraphs(currentHeatObj)
+  end
+  
+  
+  
+  printControlInfos()
 end
 
 
@@ -342,11 +387,11 @@ function startup()
    if 1 == 1 then
     getInfoFromReactorOLD()
    end
-  reactor.forceUpdate()
   setSections()
   setGraphs()
   setInfos()
   setButtons()
+  setFuelPosition()
   if DEBUG == true then
     debugInfos()
     printDebug()
