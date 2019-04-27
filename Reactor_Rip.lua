@@ -43,8 +43,11 @@ local fore = darkblue
 local PowerCooling = false
 local HeatCooling = false
 
-local minPowerRod = 0
-local maxPowerRod = 100
+local minPower = 0
+local maxPower = 100
+
+local MinHeatLimit = 0
+local MaxHeatLimit = 100
 
 local currentHeat =0
 local MaxHeat = 0
@@ -95,13 +98,19 @@ end
 
 function setButtons()
   API.setTable("ON", powerOn, 50, 5, 65, 7,"ON", {on = colors.green, off = colors.green})
-  API.setTable("OFF", powerOff, 68, 5, 84, 7,"OFF", {on = colors.red, off = colors.red})
+  API.setTable("OFF", powerOff, 68, 5, 83, 7,"OFF", {on = colors.red, off = colors.red})
 
-  API.setTable("lowerMinLimit", lowerMinLimit, 50, 15, 65, 17,"-10", {on = colors.blue, off = colors.blue})
-  API.setTable("lowerMaxLimit", lowerMaxLimit, 68, 15, 84, 17,"-10", {on = colors.purple, off = colors.purple})
+  API.setTable("lowerMinLimit", lowerMinLimit, 50, 12, 57, 14,"-10", {on = colors.blue, off = colors.blue})
+  API.setTable("lowerMaxLimit", lowerMaxLimit, 58, 12, 65, 14,"-10", {on = colors.purple, off = colors.purple})
 
-  API.setTable("augmentMinLimit", augmentMinLimit, 50, 19, 65, 21,"+10", {on = colors.blue, off = colors.blue})
-  API.setTable("augmentMaxLimit", augmentMaxLimit, 68, 19, 84, 21,"+10", {on = colors.purple, off = colors.purple})
+  API.setTable("increaseMinLimit", increaseMinLimit, 50, 16, 57, 18,"+10", {on = colors.blue, off = colors.blue})
+  API.setTable("increaseMaxLimit", increaseMaxLimit, 58, 16, 65, 18,"+10", {on = colors.purple, off = colors.purple})
+  
+  API.setTable("lowerMinHeat", lowerMinHeat, 68, 12, 75, 14,"-10", {on = colors.blue, off = colors.blue})
+  API.setTable("lowerMaxHeat", lowerMaxHeat, 76, 12, 83, 14,"-10", {on = colors.purple, off = colors.purple})
+  
+  API.setTable("increaseMinHeat", increaseMinHeat, 68, 12, 75, 18,"+10", {on = colors.blue, off = colors.blue})
+  API.setTable("increaseMaxHeat", increaseMaxHeat, 76, 12, 83, 18,"+10", {on = colors.purple, off = colors.purple})
 end
 
 function printBorders(sectionName)
@@ -133,7 +142,7 @@ function printGraphs(graphName)
   else 
     gpu.setBackground(colors.green)
   end
-  gpu.fill(g.x, g.y, g.width, g.height, "_")
+  gpu.fill(g.x, g.y, g.width, g.height, " ")
 
   -- set title
   gpu.setBackground(colors.black)
@@ -151,19 +160,18 @@ end
 
 function printStaticControlText()
   gpu.setForeground(colors.blue)
-  gpu.set(56,12, "MIN")
+  gpu.set(52,10, "MIN")
   gpu.setForeground(colors.purple)
-  gpu.set(74,12, "MAX")
+  gpu.set(60,10, "MAX")
   gpu.setForeground(colors.white)
-  gpu.set(61,10, "AUTO-CONTROL")
-  gpu.set(66,13, "--")
+  gpu.set(65,10, "AUTO")
 end
 
 function printControlInfos()
   gpu.setForeground(colors.blue)
-  gpu.set(56,13, minPowerRod .. "% ")
+  gpu.set(52,11, minPower .. "% ")
   gpu.setForeground(colors.purple)
-  gpu.set(74,13, maxPowerRod .. "% ")
+  gpu.set(60,11, maxPower .. "% ")
   gpu.setForeground(colors.white)
 end
 
@@ -212,20 +220,36 @@ function getInfoFromReactorOLD()
       
 end
 
-function augmentMinLimit()
-  modifyRods("min", 10)
-end
-
 function lowerMinLimit()
-  modifyRods("min", -10)
+  modifyRods("minpower", -10)
 end
 
-function augmentMaxLimit()
-  modifyRods("max", 10)
+function increaseMinLimit()
+  modifyRods("minpower", 10)
 end
 
 function lowerMaxLimit()
-  modifyRods("max", -10)
+  modifyRods("maxpower", -10)
+end
+
+function increaseMaxLimit()
+  modifyRods("maxpower", 10)
+end
+
+function lowerMinHeat()
+  modifyRods("MinHeatLimit", -10)
+end
+
+function increaseMinHeat()
+  modifyRods("MinHeatLimit", 10)
+end
+
+function lowerMaxHeat()
+  modifyRods("MaxHeatLimit", -10)
+end
+
+function increaseMaxHeat()
+  modifyRods("MaxHeatLimit", 10)
 end
 
 function powerOn()
@@ -239,57 +263,91 @@ end
 function modifyRods(limit, number)
 	local tempLevel = 0
 
-	if limit == "min" then
-		tempLevel = minPowerRod + number
+	if limit == "minpower" then
+		tempLevel = minPower + number
 		if tempLevel <= 0 then
-			minPowerRod = 0
+			minPower = 0
 		end
 
-		if tempLevel >= maxPowerRod then
-			minPowerRod = maxPowerRod -10
+		if tempLevel >= maxPower then
+			minPower = maxPower -10
 		end
 
-		if tempLevel < maxPowerRod and tempLevel > 0 then
-			minPowerRod = tempLevel
+		if tempLevel < maxPower and tempLevel > 0 then
+			minPower = tempLevel
 		end
-	else
-		tempLevel = maxPowerRod + number
-		if tempLevel <= minPowerRod then
-			maxPowerRod = minPowerRod +10
+		
+	elseif limit == "maxpower" then
+		tempLevel = maxPower + number
+		if tempLevel <= minPower then
+			maxPower = minPower +10
 		end
 
 		if tempLevel >= 100 then
-			maxPowerRod = 100
+			maxPower = 100
 		end
 
-		if tempLevel > minPowerRod and tempLevel < 100 then
-			maxPowerRod = tempLevel
+		if tempLevel > minPower and tempLevel < 100 then
+			maxPower = tempLevel
 		end
 	end
+		
+	if limit == "MinHeatLimit" then
+		tempLevel = MinHeatLimit + number
+		if tempLevel <= 0 then
+			MinHeatLimit = 0
+		end
 
+		if tempLevel >= MaxHeatLimit then
+			MinHeatLimit = MaxHeatLimit -10
+		end
+
+		if tempLevel < MaxHeatLimit and tempLevel > 0 then
+			MinHeatLimit = tempLevel
+		end
+		
+	elseif limit == "MaxHeatLimit" then
+		tempLevel = MaxHeatLimit + number
+		if tempLevel <= MinHeatLimit then
+			MaxHeatLimit = MinHeatLimit +10
+		end
+
+		if tempLevel >= 100 then
+			MaxHeatLimit = 100
+		end
+
+		if tempLevel > MinHeatLimit and tempLevel < 100 then
+			MaxHeatLimit = tempLevel
+		end
+	end	
+	
   setInfoToFile()
   calculateHeatPower()
 end
 
 -- Calculate and adjusts the level of the rods
 function calculateHeatPower()
-	local rfTotalMax = MaximumStorage
-	local PowerCalc  = currentRF/MaximumStorage * 100
-	local CalcHeat   = currentHeat/MaxHeat * 100
-	currentRf = reactor.stats["stored"]
+ local rfTotalMax = MaximumStorage
+ local PowerCalc  = currentRF/MaximumStorage * 100
+ local CalcHeat   = currentHeat/MaxHeat * 100
+ currentRf = reactor.stats["stored"]
 
-	if PowerCalc >= 80 and PowerCooling == false then
-		PowerCooling = true
-	end
+ if PowerCalc >= 80  then
+  reactor.deactivate()
+ elseif PowerCalc <= 30 then
+  reactor.activate()
+ end
 end
 
 while PowerCooling do
-	local PowerCalc  = currentRF/MaximumStorage * 100
-	if PowerCalc ~= <= 30 then
-		os.sleep(500)
-	elseif PowerCalc <= 30 then
-		PowerCooling = false
-	end	
+ local PowerCalc  = currentRF/MaximumStorage * 100
+
+ if PowerCalc >= 30 then
+  os.sleep(50)
+ elseif PowerCalc <= 30 then
+  reactor.activate()
+  PowerCooling = false
+ end
 end
 
 function printDebug()  
@@ -299,7 +357,7 @@ function printDebug()
   
   rodsvalues = "[0]" .. reactorRodsLevel[0] .. "[1]" .. reactorRodsLevel[1] .. "[2]" .. reactorRodsLevel[2] .. "[Z]" .. reactor.stats["rods"]
 
-  local debugInformations = "maxRF:" .. maxRF .. ", RodsLev:" .. rodsvalues .. ", curRodLev:" .. currentRodLevel .. ", curRf:" .. currentRf .. ", curRfT:" .. currentRfTick .. ", min-max:" .. minPowerRod .. "-" .. maxPowerRod
+  local debugInformations = "maxRF:" .. maxRF .. ", RodsLev:" .. rodsvalues .. ", curRodLev:" .. currentRodLevel .. ", curRf:" .. currentRf .. ", curRfT:" .. currentRfTick .. ", min-max:" .. minPower .. "-" .. maxPower
   local spaces = string.rep(" ", maxLength - string.len(debugInformations))
   gpu.set(i.x, i.y , i.title .. debugInformations .. spaces)
 end
@@ -328,6 +386,7 @@ function draw()
     local max = graphs["tick"].height - graphs["tick"].height * (currentRfTick/TotalFuelTime)
     local currentRFTickObj = {x = graphs["tick"].x, y = graphs["tick"].y, width = graphs["tick"].width, height = max -1 }
     updateall()
+    calculateHeatPower()
     printGraphs("tick")
     printActiveGraphs(currentRFTickObj)
   end
@@ -408,16 +467,16 @@ function getInfoFromFile()
     file:close()
 	else
 		file = io.open("reactor.txt","r")
-		minPowerRod = tonumber(file:read("*l"))
-		maxPowerRod = tonumber(file:read("*l"))
+		minPower = tonumber(file:read("*l"))
+		maxPower = tonumber(file:read("*l"))
     file:close()
 	end
 end
 
 function setInfoToFile()
   file = io.open("reactor.txt","w")
-  file:write(minPowerRod, "\n")
-  file:write(maxPowerRod, "\n")
+  file:write(minPower, "\n")
+  file:write(maxPower, "\n")
   file:flush()
   file:close()
 end
