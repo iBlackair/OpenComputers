@@ -53,21 +53,21 @@ end
 
 function setSections()
   sections["graph"] = { x = 5, y = 3, width = 78, height= 33, title = "  INFOS  "}
-  --sections["controls"] = { x = 88, y = 3, width = 40, height = 20, title = "  CONTROLS  "}
-  --sections["info"] = { x = 88, y = 26, width = 40, height= 10, title = "  NUMBERS  "}
+  sections["controls"] = { x = 88, y = 3, width = 40, height = 20, title = "  CONTROLS  "}
+  sections["info"] = { x = 88, y = 26, width = 40, height= 10, title = "  NUMBERS  "}
 end
 
 function setGraphs()
-  --graphs["tick"] = { x = 8, y = 6, width = 73, height= 8, title = "ENERGY LAST TICK"}
+  graphs["tick"] = { x = 8, y = 6, width = 73, height= 8, title = "ENERGY LAST TICK"}
   graphs["stored"] = { x = 8, y = 16, width = 73, height = 8, title = "ENERGY STORED"}
-  --graphs["rods"] = { x = 8, y = 26, width = 73, height= 8, title = "CONTROL RODS LEVEL"}
+  graphs["rods"] = { x = 8, y = 26, width = 73, height= 8, title = "CONTROL RODS LEVEL"}
 end
 
 function setInfos()
-  --infos["tick"] = { x = 92, y = 28, width = 73, height= 1, title = "RF PER TICK : ", unit = " RF"}
+  infos["tick"] = { x = 92, y = 28, width = 73, height= 1, title = "RF PER TICK : ", unit = " RF"}
   infos["stored"] = { x = 92, y = 30, width = 73, height = 1, title = "ENERGY STORED : ", unit = " RF"}
-  --infos["rods"] = { x = 92, y = 32, width = 73, height= 1, title = "CONTROL ROD LEVEL : ", unit = "%"}
-  --infos["fuel"] = { x = 92, y = 34, width = 73, height= 1, title = "FUEL USAGE : ", unit = " Mb/t"}
+  infos["rods"] = { x = 92, y = 32, width = 73, height= 1, title = "CONTROL ROD LEVEL : ", unit = "%"}
+  infos["fuel"] = { x = 92, y = 34, width = 73, height= 1, title = "FUEL USAGE : ", unit = " Mb/t"}
 end
 
 function debugInfos()  
@@ -190,6 +190,81 @@ function powerOff()
   reactor.setActive(false)
 end
 
+function modifyRods(limit, number)
+	local tempLevel = 0
+
+	if limit == "min" then
+		tempLevel = minPowerRod + number
+		if tempLevel <= 0 then
+			minPowerRod = 0
+		end
+
+		if tempLevel >= maxPowerRod then
+			minPowerRod = maxPowerRod -10
+		end
+
+		if tempLevel < maxPowerRod and tempLevel > 0 then
+			minPowerRod = tempLevel
+		end
+	else
+		tempLevel = maxPowerRod + number
+		if tempLevel <= minPowerRod then
+			maxPowerRod = minPowerRod +10
+		end
+
+		if tempLevel >= 100 then
+			maxPowerRod = 100
+		end
+
+		if tempLevel > minPowerRod and tempLevel < 100 then
+			maxPowerRod = tempLevel
+		end
+	end
+
+  setInfoToFile()
+  calculateAdjustRodsLevel()
+end
+
+-- Calculate and adjusts the level of the rods
+function calculateAdjustRodsLevel()
+	local rfTotalMax = 10000000
+  currentRf = reactor.stats["stored"]
+
+	differenceMinMax = maxPowerRod - minPowerRod
+
+	local maxPower = (rfTotalMax/100) * maxPowerRod
+	local minPower = (rfTotalMax/100) * minPowerRod
+
+	if currentRf >= maxPower then
+		currentRf = maxPower
+	end
+
+	if currentRf <= minPower then
+		currentRf = minPower
+	end
+
+	currentRf = toint(currentRf - (rfTotalMax/100) * minPowerRod)
+	local rfInBetween = (rfTotalMax/100) * differenceMinMax
+  local rodLevel = toint(math.ceil((currentRf/rfInBetween)*100))
+  
+  if versionType == "NEW" then
+    AdjustRodsLevel(rodLevel)
+  else
+    AdjustRodsLevelOLD(rodLevel)
+  end
+end
+
+function AdjustRodsLevel(rodLevel)
+  for key,value in pairs(reactorRodsLevel) do 
+    --reactorRodsLevel[key] = rodLevel
+    reactor.setControlRodLevel(key, rodLevel)
+  end
+  --reactor.setControlRodsLevels(reactorRodsLevel)
+end
+
+function AdjustRodsLevelOLD(rodLevel)
+  reactor.setAllControlRodLevels(rodLevel)
+end
 
 function printDebug()  
   local maxLength = 132
@@ -208,6 +283,15 @@ function draw()
     maxRF = reactor.stats["tick"]
   end
 
+  if currentRfTick ~= reactor.stats["tick"] then
+    currentRfTick = reactor.stats["tick"]
+    local max = math.ceil(graphs["tick"].width * (currentRfTick/maxRF))
+    local currentRFTickObj = {x = graphs["tick"].x, y = graphs["tick"].y, width = max, height = graphs["tick"].height}
+    printInfos("tick")
+    printGraphs("tick")
+    printActiveGraphs(currentRFTickObj)
+  end
+
   if currentRF ~= reactor.stats["stored"] then
     currentRF = reactor.stats["stored"]
     local max = math.ceil(graphs["stored"].width * (currentRF/10000000))
@@ -217,6 +301,14 @@ function draw()
     printActiveGraphs(currentRFObj)
   end
 
+  if currentRodLevel ~= reactor.stats["rods"] then
+    currentRodLevel = reactor.stats["rods"]
+    local max = math.ceil(graphs["rods"].width * (currentRodLevel/100))
+    local currentRodObj = {x = graphs["rods"].x, y = graphs["rods"].y, width = max, height = graphs["rods"].height}
+    printInfos("rods")
+    printGraphs("rods")
+    printActiveGraphs(currentRodObj)
+  end
 
   if currenFuel ~= reactor.stats["fuel"] then
     currenFuel = reactor.stats["fuel"]
@@ -229,8 +321,12 @@ function draw()
 end
 
 function startup()
- 
-  --getInfoFromReactor()
+  getInfoFromFile()
+  if versionType == "NEW" then
+    getInfoFromReactor()
+  else
+    getInfoFromReactorOLD()
+  end
   setSections()
   setGraphs()
   setInfos()
