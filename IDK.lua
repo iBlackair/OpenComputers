@@ -4,7 +4,7 @@ local component = require("component")
 local keyboard = require("keyboard")
 local event = require("event")
 local gpu = component.gpu
-local reactor = component.induction_matrix
+local reactor = component.br_reactor
 
 local versionType = "NEW"
 
