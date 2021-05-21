@@ -395,7 +395,7 @@ function setOldVersion()
   versionType = "OLD"
 end
 -- starting
-xpcall(testVersion, setOldVersion)
+--xpcall(testVersion, setOldVersion)
 startup()
 API.screen()
 
