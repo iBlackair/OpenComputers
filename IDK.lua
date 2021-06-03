@@ -4,7 +4,7 @@ local component = require("component")
 local keyboard = require("keyboard")
 local event = require("event")
 local gpu = component.gpu
-local reactor = component.br_reactor
+local reactor = component.induction_matrix
 
 local versionType = "NEW"
 
@@ -64,10 +64,10 @@ function setGraphs()
 end
 
 function setInfos()
-  infos["tick"] = { x = 92, y = 28, width = 73, height= 1, title = "RF PER TICK : ", unit = " RF"}
-  infos["stored"] = { x = 92, y = 30, width = 73, height = 1, title = "ENERGY STORED : ", unit = " RF"}
-  infos["rods"] = { x = 92, y = 32, width = 73, height= 1, title = "CONTROL ROD LEVEL : ", unit = "%"}
-  infos["fuel"] = { x = 92, y = 34, width = 73, height= 1, title = "FUEL USAGE : ", unit = " Mb/t"}
+  infos["tick"] = { x = 92, y = 28, width = 73, height= 1, title = "INPUT : ", unit = " RF/T"}
+  infos["rods"] = { x = 92, y = 30, width = 73, height = 1, title = "OUTPUT : ", unit = " RF/T"}
+  infos["stored"] = { x = 92, y = 32, width = 73, height= 1, title = "STORED :", unit = " RF"}
+  --infos["fuel"] = { x = 92, y = 34, width = 73, height= 1, title = "FUEL USAGE : ", unit = " Mb/t"}
 end
 
 function debugInfos()  
@@ -122,7 +122,7 @@ function printActiveGraphs(activeGraph)
 end
 
 function printStaticControlText()
-  gpu.setForeground(colors.blue)
+gpu.setForeground(colors.blue)
   gpu.set(97,12, "MIN")
   gpu.setForeground(colors.purple)
   gpu.set(116,12, "MAX")
@@ -132,6 +132,7 @@ function printStaticControlText()
 end
 
 function printControlInfos()
+
   gpu.setForeground(colors.blue)
   gpu.set(97,13, minPowerRod .. "% ")
   gpu.setForeground(colors.purple)
@@ -147,173 +148,47 @@ function printInfos(infoName)
 end
 
 function getInfoFromReactor()
-  local reactorEnergyStats = reactor.getEnergyStats()
-  local reactorFuelStats = reactor.getFuelStats()
-  reactorRodsLevel = reactor.getControlRodsLevels()
-
-  reactor.stats["tick"] = toint(math.ceil(reactorEnergyStats["energyProducedLastTick"]))
-  reactor.stats["stored"] = toint(reactorEnergyStats["energyStored"])
-  reactor.stats["rods"] = toint(reactorRodsLevel[0])
-  reactor.stats["fuel"] = round(reactorFuelStats["fuelConsumedLastTick"], 2)
+  reactor.stats["tick"] = shrink(reactor.getInput() / 2.5)
+  reactor.stats["rods"] = shrink(reactor.getOutput() / 2.5)
+  reactor.stats["stored"] = shrink(reactor.getEnergy()/ 2.5) 
   currentRf = reactor.stats["stored"]
 end
-
 function getInfoFromReactorOLD()
-  reactor.stats["tick"] = toint(math.ceil(reactor.getEnergyProducedLastTick()))
-  reactor.stats["stored"] = toint(reactor.getEnergyStored())
-  reactor.stats["rods"] = toint(math.ceil(reactor.getControlRodLevel(0)))
-  reactor.stats["fuel"] = round(reactor.getFuelConsumedLastTick(), 2)
+  reactor.stats["tick"] = shrink(reactor.getInput() / 2.5)
+  reactor.stats["rods"] = shrink(reactor.getOutput() / 2.5)
+  reactor.stats["stored"] = shrink(reactor.getEnergy()/ 2.5) 
   currentRf = reactor.stats["stored"]
-end
-
-function augmentMinLimit()
-  modifyRods("min", 10)
-end
-
-function lowerMinLimit()
-  modifyRods("min", -10)
-end
-
-function augmentMaxLimit()
-  modifyRods("max", 10)
-end
-
-function lowerMaxLimit()
-  modifyRods("max", -10)
-end
-
-function powerOn()
-  reactor.setActive(true)
-end
-
-function powerOff()
-  reactor.setActive(false)
-end
-
-function modifyRods(limit, number)
-	local tempLevel = 0
-
-	if limit == "min" then
-		tempLevel = minPowerRod + number
-		if tempLevel <= 0 then
-			minPowerRod = 0
-		end
-
-		if tempLevel >= maxPowerRod then
-			minPowerRod = maxPowerRod -10
-		end
-
-		if tempLevel < maxPowerRod and tempLevel > 0 then
-			minPowerRod = tempLevel
-		end
-	else
-		tempLevel = maxPowerRod + number
-		if tempLevel <= minPowerRod then
-			maxPowerRod = minPowerRod +10
-		end
-
-		if tempLevel >= 100 then
-			maxPowerRod = 100
-		end
-
-		if tempLevel > minPowerRod and tempLevel < 100 then
-			maxPowerRod = tempLevel
-		end
-	end
-
-  setInfoToFile()
-  calculateAdjustRodsLevel()
-end
-
--- Calculate and adjusts the level of the rods
-function calculateAdjustRodsLevel()
-	local rfTotalMax = 10000000
-  currentRf = reactor.stats["stored"]
-
-	differenceMinMax = maxPowerRod - minPowerRod
-
-	local maxPower = (rfTotalMax/100) * maxPowerRod
-	local minPower = (rfTotalMax/100) * minPowerRod
-
-	if currentRf >= maxPower then
-		currentRf = maxPower
-	end
-
-	if currentRf <= minPower then
-		currentRf = minPower
-	end
-
-	currentRf = toint(currentRf - (rfTotalMax/100) * minPowerRod)
-	local rfInBetween = (rfTotalMax/100) * differenceMinMax
-  local rodLevel = toint(math.ceil((currentRf/rfInBetween)*100))
-  
-  if versionType == "NEW" then
-    AdjustRodsLevel(rodLevel)
-  else
-    AdjustRodsLevelOLD(rodLevel)
-  end
-end
-
-function AdjustRodsLevel(rodLevel)
-  for key,value in pairs(reactorRodsLevel) do 
-    --reactorRodsLevel[key] = rodLevel
-    reactor.setControlRodLevel(key, rodLevel)
-  end
-  --reactor.setControlRodsLevels(reactorRodsLevel)
-end
-
-function AdjustRodsLevelOLD(rodLevel)
-  reactor.setAllControlRodLevels(rodLevel)
-end
-
-function printDebug()  
-  local maxLength = 132
-  local i = debug["print"]
-  local rodsvalues = ""
-  
-  rodsvalues = "[0]" .. reactorRodsLevel[0] .. "[1]" .. reactorRodsLevel[1] .. "[2]" .. reactorRodsLevel[2] .. "[Z]" .. reactor.stats["rods"]
-
-  local debugInformations = "maxRF:" .. maxRF .. ", RodsLev:" .. rodsvalues .. ", curRodLev:" .. currentRodLevel .. ", curRf:" .. currentRf .. ", curRfT:" .. currentRfTick .. ", min-max:" .. minPowerRod .. "-" .. maxPowerRod
-  local spaces = string.rep(" ", maxLength - string.len(debugInformations))
-  gpu.set(i.x, i.y , i.title .. debugInformations .. spaces)
 end
 
 function draw()
+--[[
   if maxRF < reactor.stats["tick"] then
     maxRF = reactor.stats["tick"]
   end
-
-  if currentRfTick ~= reactor.stats["tick"] then
+--]]
+  --[[if currentRfTick ~= reactor.stats["tick"] then
     currentRfTick = reactor.stats["tick"]
+	
     local max = math.ceil(graphs["tick"].width * (currentRfTick/maxRF))
     local currentRFTickObj = {x = graphs["tick"].x, y = graphs["tick"].y, width = max, height = graphs["tick"].height}
+	--]]
     printInfos("tick")
+	printInfo("rods")
+	--[[
     printGraphs("tick")
     printActiveGraphs(currentRFTickObj)
-  end
+  end--]]
 
-  if currentRF ~= reactor.stats["stored"] then
-    currentRF = reactor.stats["stored"]
-    local max = math.ceil(graphs["stored"].width * (currentRF/10000000))
+  if currentRF ~= toint(reactor.stats["stored"]) then
+    currentRF = toint(reactor.stats["stored"])
+	local inductionEnergyStored = reactor.getEnergy()/(reactor.getMaxEnergy()/100)
+    local max = math.ceil(graphs["stored"].width * (currentRF/reactor.getMaxEnergy()))
     local currentRFObj = {x = graphs["stored"].x, y = graphs["stored"].y, width = max, height = graphs["stored"].height}
     printInfos("stored")
     printGraphs("stored")
     printActiveGraphs(currentRFObj)
   end
-
-  if currentRodLevel ~= reactor.stats["rods"] then
-    currentRodLevel = reactor.stats["rods"]
-    local max = math.ceil(graphs["rods"].width * (currentRodLevel/100))
-    local currentRodObj = {x = graphs["rods"].x, y = graphs["rods"].y, width = max, height = graphs["rods"].height}
-    printInfos("rods")
-    printGraphs("rods")
-    printActiveGraphs(currentRodObj)
-  end
-
-  if currenFuel ~= reactor.stats["fuel"] then
-    currenFuel = reactor.stats["fuel"]
-    printInfos("fuel")
-  end
+  
   printControlInfos()
   if DEBUG == true then
     printDebug()
@@ -321,7 +196,6 @@ function draw()
 end
 
 function startup()
-  getInfoFromFile()
   if versionType == "NEW" then
     getInfoFromReactor()
   else
@@ -360,32 +234,20 @@ function round(val, decimal)
   end
 end
 
-function file_exists(name)
-   local f=io.open(name,"r")
-   if f~=nil then io.close(f) return false else return true end
+function shrink(number)
+  if number >= 10^12 then
+    return string.format("%.2ft", number / 10^12)
+  elseif number >= 10^9 then
+    return string.format("%.2fb", number / 10^9)
+  elseif number >= 10^6 then
+    return string.format("%.2fm", number / 10^6)
+  elseif number >= 10^3 then
+    return string.format("%.2fk", number / 10^3)
+  else
+    return tostring(number)
+  end
 end
 
-function getInfoFromFile()
-	 if file_exists("reactor.txt") then
-	 	file = io.open("reactor.txt","w")
-    file:write("0", "\n")
-    file:write("100", "\n")
-    file:close()
-	else
-		file = io.open("reactor.txt","r")
-		minPowerRod = tonumber(file:read("*l"))
-		maxPowerRod = tonumber(file:read("*l"))
-    file:close()
-	end
-end
-
-function setInfoToFile()
-  file = io.open("reactor.txt","w")
-  file:write(minPowerRod, "\n")
-  file:write(maxPowerRod, "\n")
-  file:flush()
-  file:close()
-end
 
 function testVersion()
   reactor.getEnergyStats()
@@ -409,7 +271,7 @@ while event.pull(0.1, "interrupted") == nil do
   else
     getInfoFromReactorOLD()
   end
-  calculateAdjustRodsLevel()
+  --calculateAdjustRodsLevel()
   draw()
   local event, address, arg1, arg2, arg3 = event.pull(1)
   if type(address) == "string" and component.isPrimary(address) then
